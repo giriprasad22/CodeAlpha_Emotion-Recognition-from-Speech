@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Speech Emotion Recognition</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+    <h1>🎤 Speech Emotion Recognition</h1>
+    <p class="subtitle">Upload a speech file and see the detected emotion instantly . Use WAV Files Only</p>
+
+    <!-- Drag & Drop Area -->
+    <div id="dropArea">
+        <p>Drag & Drop Audio Here</p>
+        <p>or</p>
+        <label class="uploadBtn" for="fileInput">Browse Files</label>
+        <input type="file" id="fileInput" accept=".wav,.mp3" hidden>
+    </div>
+
+    <!-- Result Box -->
+    <div id="result" class="hidden">
+        <div class="emotion-display">
+            <span id="emotionIcon">😊</span>
+            <span id="emotionText">Processing...</span>
+        </div>
+        <div id="confidenceBar"><div id="confidenceFill"></div></div>
+    </div>
+</div>
+
+<script>
+const dropArea = document.getElementById('dropArea');
+const fileInput = document.getElementById('fileInput');
+const resultDiv = document.getElementById('result');
+const emotionIcon = document.getElementById('emotionIcon');
+const emotionText = document.getElementById('emotionText');
+const confidenceFill = document.getElementById('confidenceFill');
+
+// Drag & Drop Events
+dropArea.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropArea.classList.add('dragover');
+});
+dropArea.addEventListener('dragleave', () => dropArea.classList.remove('dragover'));
+dropArea.addEventListener('drop', e => {
+  e.preventDefault();
+  dropArea.classList.remove('dragover');
+  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+
+fileInput.addEventListener('change', () => {
+  if (fileInput.files.length) handleFile(fileInput.files[0]);
+});
+
+function handleFile(file) {
+  const formData = new FormData();
+  formData.append('audio', file);
+
+  resultDiv.classList.remove('hidden');
+  emotionText.textContent = "Processing...";
+  emotionIcon.textContent = "⏳";
+  confidenceFill.style.width = "0%";
+
+  fetch('/predict', { method: 'POST', body: formData })
+    .then(res => res.json())
+    .then(data => {
+      emotionText.textContent = data.predicted_emotion;
+      emotionIcon.textContent = getEmoji(data.predicted_emotion);
+      confidenceFill.style.width = (data.confidence * 100).toFixed(1) + '%';
+    })
+    .catch(() => {
+      emotionText.textContent = "Error predicting emotion";
+      emotionIcon.textContent = "⚠️";
+    });
+}
+
+function getEmoji(emotion) {
+  const map = {
+    happy: "😊",
+    sad: "😢",
+    angry: "😠",
+    fear: "😨",
+    surprised: "😲",
+    neutral: "😐"
+  };
+  return map[emotion.toLowerCase()] || "🎵";
+}
+</script>
+</body>
+</html>
