@@ -5,7 +5,8 @@ import tensorflow as tf
 from sklearn.preprocessing import LabelEncoder
 import io
 
-app = Flask(__name__)
+
+app = Flask(__name__, static_folder='static', template_folder='templates')
 
 # Load model and labels
 MODEL_PATH = "emotion_recognition_lstm.h5"
@@ -49,5 +50,5 @@ def predict():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host='0.0.0.0', port=port)
 
