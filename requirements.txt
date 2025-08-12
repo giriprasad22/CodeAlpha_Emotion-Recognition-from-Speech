@@ -1,5 +1,3 @@
-numba
-llvmlite
 librosa
 tensorflow
 numpy
